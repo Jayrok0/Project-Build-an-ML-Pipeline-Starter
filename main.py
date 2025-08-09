@@ -6,6 +6,11 @@ import os
 import wandb
 import hydra
 from omegaconf import DictConfig
+import subprocess
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
+logger = logging.getLogger()
 
 _steps = [
     "download",
@@ -50,11 +55,26 @@ def go(config: DictConfig):
                 },
             )
 
-        if "basic_cleaning" in active_steps:
-            ##################
-            # Implement here #
-            ##################
-            pass
+        # In main.py, inside the go() function...
+
+            if "basic_cleaning" in steps:
+
+                # Execute the basic_cleaning step as a subprocess
+                logger.info("Running basic cleaning step")
+
+                # We build the command line to execute the component
+                command = [
+                    "python", "src/basic_cleaning/run.py",
+                    "--input_artifact", config["basic_cleaning"]["input_artifact"],
+                    "--output_artifact", config["basic_cleaning"]["output_artifact"],
+                    "--output_type", config["basic_cleaning"]["output_type"],
+                    "--output_description", config["basic_cleaning"]["output_description"],
+                    "--min_price", str(config["etl"]["min_price"]),
+                    "--max_price", str(config["etl"]["max_price"])
+                ]
+
+                # We run the command as a subprocess. If it fails, it will raise an exception
+                subprocess.run(command, check=True)
 
         if "data_check" in active_steps:
             ##################
