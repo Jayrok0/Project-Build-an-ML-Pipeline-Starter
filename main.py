@@ -39,6 +39,8 @@ def go(config: DictConfig):
     steps_par = config['main']['steps']
     active_steps = steps_par.split(",") if steps_par != "all" else _steps
 
+    original_cwd = hydra.utils.get_original_cwd()
+
     # Move to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
@@ -57,24 +59,22 @@ def go(config: DictConfig):
 
         # In main.py, inside the go() function...
 
-            if "basic_cleaning" in steps:
+        if "basic_cleaning" in steps:
+            _ = mlflow.run(
+                os.path.join(original_cwd, "src", "basic_cleaning"),
+                "main",
+                parameters={
+                    "input_artifact": config["basic_cleaning"]["input_artifact"],
+                    "output_artifact": config["basic_cleaning"]["output_artifact"],
+                    "output_type": config["basic_cleaning"]["output_type"],
+                    "output_description": config["basic_cleaning"]["output_description"],
+                    "min_price": config["etl"]["min_price"],
+                    "max_price": config["etl"]["max_price"],
+                },
+            )
 
-                # Execute the basic_cleaning step as a subprocess
-                logger.info("Running basic cleaning step")
-
-                # We build the command line to execute the component
-                command = [
-                    "python", "src/basic_cleaning/run.py",
-                    "--input_artifact", config["basic_cleaning"]["input_artifact"],
-                    "--output_artifact", config["basic_cleaning"]["output_artifact"],
-                    "--output_type", config["basic_cleaning"]["output_type"],
-                    "--output_description", config["basic_cleaning"]["output_description"],
-                    "--min_price", str(config["etl"]["min_price"]),
-                    "--max_price", str(config["etl"]["max_price"])
-                ]
-
-                # We run the command as a subprocess. If it fails, it will raise an exception
-                subprocess.run(command, check=True)
+            # We run the command as a subprocess. If it fails, it will raise an exception
+            subprocess.run(command, check=True)
 
         if "data_check" in active_steps:
             ##################

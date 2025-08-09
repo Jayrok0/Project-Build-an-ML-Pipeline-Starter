@@ -2,18 +2,31 @@ import argparse
 import logging
 import pandas as pd
 import wandb
+import time
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 def go(args):
 
-    run = wandb.init(job_type="basic_cleaning", project="nyc-airbnb")
+    run = wandb.init(job_type="basic_cleaning")
     run.config.update(args)
 
     # Download input artifact
     logger.info("Downloading input artifact")
-    artifact = run.use_artifact(args.input_artifact)
+    artifact = None
+    for i in range(5):
+        try:
+            artifact = run.use_artifact(args.input_artifact)
+            logger.info("Artifact found!")
+            break  # Success, exit the loop
+        except Exception as e:
+            logger.error(f"Attempt {i+1} to fetch artifact failed: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
+
+    if artifact is None:
+        logger.error("Failed to download artifact after multiple retries.")
+        raise RuntimeError("Failed to download artifact.")
     artifact_path = artifact.file()
 
     df = pd.read_csv(artifact_path)

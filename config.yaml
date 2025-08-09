@@ -40,4 +40,4 @@ basic_cleaning:
   input_artifact: "raw_data.csv:latest"
   output_artifact: "clean_sample.csv"
   output_type: "clean_data"
-  output_description: "Data with outliers and nulls removed"
+  output_description: "Data_with_outliers_and_nulls_removed"
