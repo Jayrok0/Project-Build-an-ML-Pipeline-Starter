@@ -77,10 +77,17 @@ def go(config: DictConfig):
             subprocess.run(command, check=True)
 
         if "data_check" in active_steps:
-            ##################
-            # Implement here #
-            ##################
-            pass
+            _ = mlflow.run(
+                os.path.join(original_cwd, "src", "data_check"),
+                "main",
+                parameters={
+                    "csv": config["basic_cleaning"]["output_artifact"],
+                    "ref": "clean_sample.csv:reference",
+                    "kl_threshold": config["data_check"]["kl_threshold"],
+                    "min_price": config["etl"]["min_price"],
+                    "max_price": config["etl"]["max_price"],
+                },
+            )
 
         if "data_split" in active_steps:
             ##################
