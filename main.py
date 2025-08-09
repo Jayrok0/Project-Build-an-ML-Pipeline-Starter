@@ -24,6 +24,8 @@ _steps = [
 @hydra.main(config_name='config')
 def go(config: DictConfig):
 
+    steps = config.main.steps
+
     # Setup the wandb experiment. All runs will be grouped under this name
     os.environ["WANDB_PROJECT"] = config["main"]["project_name"]
     os.environ["WANDB_RUN_GROUP"] = config["main"]["experiment_name"]
@@ -35,18 +37,16 @@ def go(config: DictConfig):
     # Move to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
-        if "download" in active_steps:
-            # Download file and load in W&B
+        if "download" in steps:
+            # This block runs the download step
             _ = mlflow.run(
-                f"{config['main']['components_repository']}/get_data",
+                os.path.join(config["main"]["components_repository"], "get_data"),
                 "main",
-                version='main',
-                env_manager="conda",
                 parameters={
                     "sample": config["etl"]["sample"],
-                    "artifact_name": "sample.csv",
+                    "artifact_name": "raw_data.csv",
                     "artifact_type": "raw_data",
-                    "artifact_description": "Raw file as downloaded"
+                    "artifact_description": "Raw_file_as_downloaded"  # <--- THIS IS THE LINE
                 },
             )
 
