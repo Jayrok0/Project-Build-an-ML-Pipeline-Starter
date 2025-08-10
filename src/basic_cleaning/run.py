@@ -39,6 +39,14 @@ def go(args):
     artifact.add_file(args.output_file)
     run.log_artifact(artifact)
 
+    logger.info(f"Number of rows after cleaning: {df.shape[0]}")
+
+    idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
+    df = df[idx].copy()
+
+    logger.info(f"Saving cleaned data to {args.output_file}")
+    df.to_csv(args.output_file, index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A script to clean the Airbnb dataset.")
